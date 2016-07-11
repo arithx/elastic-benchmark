@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import dateutil.parser
 import json
 import re
 import sys
@@ -123,6 +124,27 @@ def parse_rally_output(output):
             "average_action_time": average_action_time,
             "average_action_success": average_action_success})
     return return_data
+
+
+def parse_tempest_output(output):
+    csv_results = output.splitlines()[1:]
+    
+    results = []
+    for row in csv_results:
+        # Ignore the test id, take only the test method name
+        name = row['test'].split('[')[0].split('.')[-1]
+        start_time = dateutil.parser.parse(row['start_time'])
+        run_at = start_time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        stop_time = dateutil.parser.parse(row['stop_time'])
+        run_time = (stop_time - start_time).seconds
+        results.append(
+            {
+                'name': name,
+                'run_time': run_time,
+                'status': row['status'],
+                'run_at': run_at
+            })
+        return results
 
 
 class ArgumentParser(argparse.ArgumentParser):
