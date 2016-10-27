@@ -85,7 +85,7 @@ def parse_persistence_validation(before, after):
             "pers_after_failures_total": after.failure + after.error}
 
 def parse_persistence(output):
-    data = json.loads(data)
+    data = json.loads(output)
     body = {}
  
     for k,v in data.items():
