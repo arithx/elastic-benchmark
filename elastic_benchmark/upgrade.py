@@ -63,8 +63,12 @@ def parse_uptime(output):
 
 def parse_during(output):
     data = json.loads(open(output).read())
-
-    return {"{0}_during".format(k): v.get("uptime_pct") for k, v in data.items()}
+    
+    data.update({"{0}_success".format(k): v.get("successful_requests") for k, v in data.items()})
+    data.update({"{0}_total".format(k): v.get("total_requests") for k, v in data.items()})
+    data.update({"{0}_during_uptime".format(k): v.get("uptime_pct") for k, v in data.items()})
+    print data
+    return data
 
 
 def parse_persistence_validation(before, after):
@@ -240,4 +244,5 @@ def entry_point():
     differences.update(parse_during(cl_args.during))
     differences.update(parse_persistence(cl_args.persistence))
     differences.update({"done_time": current_time})
-    esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
+    print differences
+    #esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
