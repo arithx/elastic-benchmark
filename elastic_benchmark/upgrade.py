@@ -64,9 +64,10 @@ def parse_uptime(output):
 def parse_during(output):
     data = json.loads(open(output).read())
     
+    data.update({"{0}_during_uptime".format(k): v.get("uptime_pct") for k, v in data.items()})
     data.update({"{0}_success".format(k): v.get("successful_requests") for k, v in data.items()})
     data.update({"{0}_total".format(k): v.get("total_requests") for k, v in data.items()})
-    data.update({"{0}_during_uptime".format(k): v.get("uptime_pct") for k, v in data.items()})
+    
     print data
     return data
 
