@@ -85,18 +85,18 @@ def parse_persistence_validation(before, after):
             "pers_after_failures_total": after.failure + after.error}
 
 def parse_persistence(output):
-    data = json.loads(output)
+    data = json.loads(open(output).read())
     body = {}
  
     for k,v in data.items():
         for s in v['create']:
-            body.update({s['task']: s['create']})
+            body.update({k + '_' + s['task']: s['create']})
         for s in v['after-verify']:
-            body.update({s['task']: s['create']})
+            body.update({k + '_' + s['task']: s['after-verify']})
         for s in v['before-verify']:
-            body.update({s['task']: s['create']})
+            body.update({k + '_' + s['task']: s['before-verify']})
         for s in v['cleanup']:
-            body.update({s['task']: s['create']})
+            body.update({k + '_' + s['task']: s['cleanup']})
     return body
 
 
