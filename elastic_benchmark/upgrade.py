@@ -105,6 +105,12 @@ def parse_persistence(output):
     return body
 
 
+def parse_project_status(output):
+     data = json.loads(open(output).read())
+     body = {}
+     print data
+
+
 class SubunitParser(testtools.TestResult):
     def __init__(self):
         super(SubunitParser, self).__init__()
@@ -244,6 +250,6 @@ def entry_point():
     differences.update(parse_uptime(cl_args.uptime))
     differences.update(parse_during(cl_args.during))
     differences.update(parse_persistence(cl_args.persistence))
+    parse_project_status(cl_args.status)
     differences.update({"done_time": current_time})
-    print differences
-    #esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
+    esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
