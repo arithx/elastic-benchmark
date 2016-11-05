@@ -57,11 +57,15 @@ def parse_differences(before, after):
 
 
 def parse_uptime(output):
+    if output == None:
+        return
     data = json.loads(open(output).read())
 
     return {"{0}_uptime".format(k): v.get("uptime_pct") for k, v in data.items()}
 
 def parse_during(output):
+    if output == None:
+        return
     data = json.loads(open(output).read())
     
     data.update({"{0}_during_uptime".format(k): v.get("uptime_pct") for k, v in data.items()})
@@ -90,6 +94,8 @@ def parse_persistence_validation(before, after):
             "pers_after_failures_total": after.failure + after.error}
 
 def parse_persistence(output):
+    if output == None:
+        return
     data = json.loads(open(output).read())
     body = {}
  
@@ -103,13 +109,6 @@ def parse_persistence(output):
         for s in v['cleanup']:
             body.update({k + '_' + s['task']: s['cleanup']})
     return body
-
-
-def parse_project_status(output):
-     data = json.loads(open(output).read())
-     body = {}
-     print data
-
 
 class SubunitParser(testtools.TestResult):
     def __init__(self):
@@ -250,7 +249,6 @@ def entry_point():
     differences.update(parse_uptime(cl_args.uptime))
     differences.update(parse_during(cl_args.during))
     differences.update(parse_persistence(cl_args.persistence))
-    print "here"
-    parse_project_status(cl_args.status)
     differences.update({"done_time": current_time})
-    esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
+    print differences
+    #esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
