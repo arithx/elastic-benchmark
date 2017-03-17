@@ -57,14 +57,23 @@ def parse_differences(before, after):
 
 
 def parse_uptime(output):
+    if output == None:
+        return
     data = json.loads(open(output).read())
 
     return {"{0}_uptime".format(k): v.get("uptime_pct") for k, v in data.items()}
 
 def parse_during(output):
+    if output == None:
+        return
     data = json.loads(open(output).read())
-
-    return {"{0}_during".format(k): v.get("uptime_pct") for k, v in data.items()}
+    
+    data.update({"{0}_during_uptime".format(k): v.get("uptime_pct") for k, v in data.items()})
+    data.update({"{0}_success".format(k): v.get("successful_requests") for k, v in data.items()})
+    data.update({"{0}_total".format(k): v.get("total_requests") for k, v in data.items()})
+    
+    print data
+    return data
 
 
 def parse_persistence_validation(before, after):
@@ -84,13 +93,21 @@ def parse_persistence_validation(before, after):
             "pers_before_failures_total": before.failure + before.error,
             "pers_after_failures_total": after.failure + after.error}
 
-def parse_persistence_create(output):
-    data = json.loads(data)
+def parse_persistence(output):
+    if output == None:
+        return
+    data = json.loads(open(output).read())
     body = {}
  
     for k,v in data.items():
         for s in v['create']:
-            body.update({s['service']: s['create']})
+            body.update({k + '_' + s['task']: s['create']})
+        for s in v['after-verify']:
+            body.update({k + '_' + s['task']: s['after-verify']})
+        for s in v['before-verify']:
+            body.update({k + '_' + s['task']: s['before-verify']})
+        for s in v['cleanup']:
+            body.update({k + '_' + s['task']: s['cleanup']})
     return body
 
 class SubunitParser(testtools.TestResult):
@@ -180,9 +197,13 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument(
             "-d", "--during", metavar="<during output>",
             required=False, default=None, help="A link to the during output from the upgrade.")
+
+        self.add_argument(
+            "-p", "--persistence", metavar="<persistence test output>",
+            required=False, default=None, help="A link to the persistence test output from the upgrade.")
         
         self.add_argument(
-            "-p", "--pre", metavar="<persistence test pre val output>",
+            "-e", "--pre", metavar="<persistence test pre val output>",
             required=False, default=None, help="A link to the pre val persistence test output from the upgrade.")
         
         self.add_argument(
@@ -224,11 +245,10 @@ def entry_point():
     esc = ElasticSearchClient()
     before = parse(cl_args.before)
     after = parse(cl_args.after)
-    pre_validation = parse(cl_args.pre)
-    post_validation = parse(cl_args.post)
     differences = parse_differences(before, after)
     differences.update(parse_uptime(cl_args.uptime))
     differences.update(parse_during(cl_args.during))
-    differences.update(parse_persistence_validation(pre_validation, post_validation))
+    differences.update(parse_persistence(cl_args.persistence))
     differences.update({"done_time": current_time})
-    esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
+    print differences
+    #esc.index(scenario_name='upgrade', env='osa_onmetal', **differences)
